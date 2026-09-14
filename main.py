@@ -11,7 +11,7 @@ basement_sensor = FakeSensor(baseline=15)
 window = RollingWindow(5)
 
 #creating a detector object
-detector = Detector( window ,2.0)
+detector = Detector( window ,2.0, 1.0)
 #Loop about twenty times
 for i in range(30):
     #Assign the reading to a variable- something like reading = basement_sensor.read()
