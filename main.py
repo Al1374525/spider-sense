@@ -13,7 +13,7 @@ window = RollingWindow(5)
 #creating a detector object
 detector = Detector( window ,2.0)
 #Loop about twenty times
-for i in range(20):
+for i in range(30):
     #Assign the reading to a variable- something like reading = basement_sensor.read()
     reading = basement_sensor.read()
     is_alert = detector.update(reading)
@@ -27,6 +27,9 @@ for i in range(20):
     #around iteration ten, call set_offset(-5.0)
     if i == 10:
         basement_sensor.set_offset(-5.0)
+    
+    if i == 15:
+        basement_sensor.set_offset(0.0)
     #call read() once, store it in a variable
 
 
