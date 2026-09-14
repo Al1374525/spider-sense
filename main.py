@@ -17,7 +17,7 @@ for i in range(20):
     #Assign the reading to a variable- something like reading = basement_sensor.read()
     reading = basement_sensor.read()
     is_alert = detector.update(reading)
-    marker = " *** ALERT ***"if is_alert else"
+    marker = " *** ALERT ***"if is_alert else""
 
     #window.add(reading)
 
