@@ -22,6 +22,7 @@ class Detector:
 
 
         self.window.add(reading)
+        #below we are testing out if self.window.is_full()
         if not self.window.is_full():
             return False
         
