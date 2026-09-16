@@ -58,3 +58,21 @@ def test_detector_remains_alerting_after_initial_trigger():
         result = detector.update(10.0)
     
     assert result, "Baseline was poisoned: alert stopped while anomaly persisted."
+
+#Test 7 - Recovery
+def test_detector_recovers_after_anomaly():
+    rolling_window = RollingWindow(5)
+    detector = Detector(rolling_window, 2.0, 1.0)
+
+    for _ in range(5):
+        detector.update(15.0)
+    
+    for _ in range(5):
+        detector.update(10.0)  # Trigger anomaly
+    
+    # Conditions return to normal.
+    for _ in range(5):
+        result = detector.update(15.0)
+    
+    assert not result, "Alert failed to clear after conditions returned to normal."
+    

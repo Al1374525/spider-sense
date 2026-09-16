@@ -21,14 +21,16 @@ class Detector:
             return True
 
 
-        self.window.add(reading)
+        
         #below we are testing out if self.window.is_full()
         if not self.window.is_full():
+            self.window.add(reading)
             return False
         
         if is_anomalous(reading, self.window.average(), self.threshold):
             self.is_alerting = True
             return True
         
+        self.window.add(reading)
         return False
         #return is_anomalous(reading, self.window.average(), self.threshold)
