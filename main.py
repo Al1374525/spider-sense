@@ -19,7 +19,7 @@ detector = Detector( window ,2.0, 1.0)
 alerter = ConsoleAlerter()
 
 # monitor object
-monitor = Monitor(basement_sensor, detector, alerter, 0.25)
+monitor = Monitor(basement_sensor, detector, alerter, 0.25, heartbeat_interval=5)
 
 
 monitor.run(30)
