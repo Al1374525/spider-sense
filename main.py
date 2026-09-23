@@ -6,7 +6,8 @@ from spider_sense.window import RollingWindow
 from spider_sense.detector import Detector
 from spider_sense.alerters import ConsoleAlerter
 from spider_sense.monitor import Monitor
-import time
+from spider_sense.sensors import FakeSensor
+from spider_sense.protocol import encode_packet
 import serial 
 
 #Opening up a port
@@ -25,6 +26,11 @@ alerter = ConsoleAlerter()
 
 # monitor object
 monitor = Monitor(basement_sensor, detector, alerter, 0.25, heartbeat_interval=5)
+
+fake_sensor = FakeSensor(baseline=15, schedule={10: -5.0, 15: 0.0})
+
+for _ in range(30):
+    port.write(encode_packet(fake_sensor.read()))
 
 
 monitor.run(30)

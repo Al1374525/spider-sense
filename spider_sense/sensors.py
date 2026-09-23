@@ -1,5 +1,6 @@
 import random
 from spider_sense.protocol import PacketDecoder
+from collections import deque
 #Sensors class for spider_sense system
 class Sensor:
     def read(self):
@@ -25,28 +26,26 @@ class FakeSensor(Sensor):
 
 
 class SerialSensor(Sensor):
-    def __init__(self, port):
+    def __init__(self, port, max_queued=50):
         self.port = port
         self.decoder = PacketDecoder()
+        self.queue = deque(maxlen=max_queued)
 
     def read(self):
         #1. Check to see how many bytes are in waiting
 
         waiting = self.port.in_waiting
         #2. If non are waiting, return None
-        if waiting == 0:
+        if waiting :
+            data = self.port.read(waiting)
+            self.queue.extend(self.decoder.feed(data))
+
+        if not self.queue:
             return None
-        #3.Read exactly that many bytes 
-        data = self.port.read(waiting)
 
-        #4 feed them into the decoder
-        results = self.decoder.feed(data)
 
-        #5 if the results returned any temp, return the last one
-        if results:
-            return results[-1] #Grabs the last item in the list
-
-        return None
+        return self.queue.popleft()
+    
 
         
 
