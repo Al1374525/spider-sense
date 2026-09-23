@@ -75,6 +75,6 @@ The simulator accepts a schedule of offsets keyed by sample number, so failure s
 ## Roadmap
 
 - **Week 1** — detection engine in Python *(complete)*
-- **Week 2** — framed serial protocol with checksums and desync recovery
+- **Week 2** — framed serial protocol with checksums and desync recovery *(complete)*
 - **Week 3** — C++ parser over a fixed-size buffer, no dynamic allocation
 - **Week 4** — deployment to a microcontroller driving a physical alert
