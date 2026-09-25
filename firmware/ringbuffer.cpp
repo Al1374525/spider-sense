@@ -41,3 +41,37 @@ bool pop(unsigned char* out){
 
 }
 
+int main(){
+    unsigned char value;
+
+    std::cout << "--- basic push/pop --\n";
+
+    push(10);
+    push(20);
+    push(30);
+    
+    while(pop(&value)){
+        std::cout << (int)value << "\n";
+    }
+
+    std::cout << "--- wraparound ---\n";
+
+    for(int i = 0; i < 64;i++){
+        push((unsigned char)i);
+    }
+
+    for (int i =0; i < 32; i++){
+        pop(&value);
+    }
+
+    for(int i= 100; i <132; i++){
+        push((unsigned char)i);
+    }
+
+    while (pop(&value)){
+        std::cout << (int)value << " ";
+    }
+
+    std::cout << "\n";
+}
+
