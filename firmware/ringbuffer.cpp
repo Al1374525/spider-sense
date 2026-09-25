@@ -1,76 +1,85 @@
 #include <iostream>
-
 const int CAPACITY = 64;
 
-unsigned char buffer[CAPACITY];
+struct RingBuffer{
 
-int head = 0;
+    unsigned char buffer[CAPACITY];
+    int head;
+    int tail;
+    int count;
+};
 
-int tail = 0;
+void init(RingBuffer* rb){
+    rb->head = 0;
+    rb->tail =0;
+    rb->count = 0;
+}
 
-int count = 0;
-
-bool push(unsigned char byte){
-    if(count == CAPACITY){
+bool push(RingBuffer* rb,unsigned char byte){
+    if(rb->count == CAPACITY){
         return false;
     }
 
-    buffer[head] = byte; //store byte at head
-    head = (head + 1 ) % CAPACITY; // Advance head, wrapping at CAPACITY
-    count++; // Increment count
+   rb->buffer[rb->head] = byte; //store byte at head
+    rb->head = (rb->head + 1 ) % CAPACITY; // Advance head, wrapping at CAPACITY
+    rb->count++; // Increment count
 
     return true;
 }
 
-bool pop(unsigned char* out){
-    if(count ==0){
+bool pop(RingBuffer* rb,  unsigned char* out){
+    if(rb->count ==0){
         return false;
     }
 
     //2. Get the byte at tail
-    *out = buffer[tail];
+    *out = rb->buffer[rb->tail];
 
     //3. Advance tail, wrapping around the buffer capacity
-    tail = (tail + 1) % CAPACITY;
+    rb->tail = (rb->tail + 1) % CAPACITY;
 
     //4. Decrement count
     
-    count--;
+    rb->count--;
 
     return true;
 
 }
 
 int main(){
+    RingBuffer rb;
+    init(&rb);
     unsigned char value;
 
     std::cout << "--- basic push/pop --\n";
 
-    push(10);
-    push(20);
-    push(30);
+   
+   push(&rb, 10);
+   push(&rb, 20);
+   push(&rb, 30);
     
-    while(pop(&value)){
+    while(pop(&rb, &value)){
         std::cout << (int)value << "\n";
     }
 
     std::cout << "--- wraparound ---\n";
 
     for(int i = 0; i < 64;i++){
-        push((unsigned char)i);
+        push(&rb, (unsigned char)i);
     }
 
     for (int i =0; i < 32; i++){
-        pop(&value);
+        pop(&rb, &value);
     }
 
     for(int i= 100; i <132; i++){
-        push((unsigned char)i);
+        push(&rb, (unsigned char)i);
     }
 
-    while (pop(&value)){
+        while (pop(&rb, &value)) {
         std::cout << (int)value << " ";
     }
+
 
     std::cout << "\n";
 }
