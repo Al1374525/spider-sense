@@ -46,6 +46,17 @@ bool pop(RingBuffer* rb,  unsigned char* out){
 
 }
 
+bool peek(RingBuffer* rb, int offset, unsigned char* out){
+    if( offset < 0 ||offset >= rb->count){
+        return false;
+    }
+
+    int slot = (rb->tail + offset) % CAPACITY;
+    *out = rb->buffer[slot];
+
+    return true;
+}
+
 int main(){
     RingBuffer rb;
     init(&rb);
@@ -82,5 +93,25 @@ int main(){
 
 
     std::cout << "\n";
+
+    std::cout << "--- peek ---\n";
+    
+    //drain anything left over so we can start
+    while (pop(&rb, &value)) {}
+    push(&rb, 10);
+    push(&rb, 20);
+    push(&rb, 30);
+
+    std::cout << "before: count=" << rb.count << " tail=" << rb.tail << "\n";
+
+    if (peek(&rb, 2, &value)){
+        std::cout << "peek(2) = " << (int)value << "\n";
+        std::cout << "after: count=" << rb.count << " tail=" << rb.tail << "\n";
+
+    }
+
+    std::cout << "peek(3) ok?" << peek(&rb, 3, &value) << "\n";
+    std::cout << "peek(-1) ok? " << peek(&rb, -1, &value) << "\n";
 }
+
 
