@@ -1,5 +1,6 @@
 #include <iostream>
 const int CAPACITY = 64;
+const unsigned char SYNC_BYTE = 0xAA;
 
 struct RingBuffer{
 
@@ -57,6 +58,21 @@ bool peek(RingBuffer* rb, int offset, unsigned char* out){
     return true;
 }
 
+
+//Tells the caller whether it found a sync byte
+bool find_sync(RingBuffer* rb){
+   unsigned char byte;
+   
+   while(peek(rb, 0, &byte)){
+    if(byte== SYNC_BYTE){
+        return true;
+    }
+    pop(rb, &byte);
+
+   }
+   return false;
+}
+
 int main(){
     RingBuffer rb;
     init(&rb);
@@ -112,6 +128,32 @@ int main(){
 
     std::cout << "peek(3) ok?" << peek(&rb, 3, &value) << "\n";
     std::cout << "peek(-1) ok? " << peek(&rb, -1, &value) << "\n";
+
+    std::cout << "--- find_sync ---\n";
+
+    while (pop(&rb, &value)){}
+
+    push(&rb, 1);
+    push(&rb, 2);
+    push(&rb, 3);
+    push(&rb, 0xAA);
+    push(&rb, 7);
+    push(&rb, 8);
+
+    std::cout << "found? " << find_sync(&rb) << "\n";
+    std::cout << "count=" << rb.count << "\n";
+    peek(&rb, 0, &value);
+    std::cout << "front=" << (int)value << "\n";
+
+    while(pop(&rb, &value)){}
+
+    push(&rb, 1);
+    push(&rb, 2);
+    push(&rb, 3);
+
+    std::cout <<"found" << find_sync(&rb) << "\n";
+    std::cout << "count=" << rb.count << "\n";
+
 }
 
 
