@@ -2,6 +2,12 @@
 const int CAPACITY = 64;
 const unsigned char SYNC_BYTE = 0xAA;
 
+enum DecodeStat{
+    syncNotFound,
+    incomplete,
+    ready
+};
+
 struct RingBuffer{
 
     unsigned char buffer[CAPACITY];
