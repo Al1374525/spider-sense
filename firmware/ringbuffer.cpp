@@ -6,7 +6,9 @@ enum DecodeStat{
     syncNotFound,
     incomplete,
     ready
+
 };
+
 
 struct RingBuffer{
 
@@ -77,6 +79,30 @@ bool find_sync(RingBuffer* rb){
 
    }
    return false;
+}
+
+DecodeStat check_packet(RingBuffer* rb){
+
+    if(find_sync(rb) == false ){
+        return syncNotFound;
+
+    }
+
+    unsigned char length;
+    if(!peek(rb, 1, &length)){
+
+        return incomplete;
+
+    }
+
+    int packet_size = length + 3;
+
+    if(rb->count < packet_size){
+        return incomplete;
+    }
+
+    return ready;
+
 }
 
 int main(){
@@ -159,6 +185,33 @@ int main(){
 
     std::cout <<"found" << find_sync(&rb) << "\n";
     std::cout << "count=" << rb.count << "\n";
+
+
+    std::cout << "--- check_packet ---\n";
+    
+    while (pop(&rb, &value)) {}
+
+    push(&rb, 0xAA);
+    push(&rb, 5);
+    push(&rb, 0x31);
+    push(&rb, 0x35);
+    DecodeStat s1 = check_packet(&rb);
+    std::cout << "partial: " << s1 << " count=" << rb.count << "\n";
+
+
+    push(&rb, 0x2E);
+    push(&rb, 0x30);
+    push(&rb, 0x33);
+    push(&rb, 0xF7);
+    DecodeStat s2 = check_packet(&rb);
+    std::cout << "full:   " << s2 << " count= " << rb.count << "\n";
+
+    while (pop(&rb, &value)) {}
+    push(&rb, 1);
+    push(&rb, 2);
+    push(&rb, 3);
+    DecodeStat s3 = check_packet(&rb);
+    std::cout << "garbage: " << s3 << " count=" << rb.count << "\n";
 
 }
 
