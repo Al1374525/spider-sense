@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cassert>
 const int CAPACITY = 64;
 const unsigned char SYNC_BYTE = 0xAA;
 
@@ -184,6 +185,32 @@ bool read_packet(RingBuffer* rb, int* out ){
 
 }
 
+int decode_all(RingBuffer* rb, int* temps, int max_temps){
+    int found = 0;
+
+    while(found < max_temps){
+        DecodeStat status = check_packet(rb);
+
+        if (status == syncNotFound){
+            break;
+        }
+
+        if (status == incomplete){
+            break;
+        }
+
+        if( status == badLength){
+            continue;
+        }
+
+        if(read_packet(rb, &temps[found])){
+            found++;
+        }
+    }
+
+    return found;
+}
+
 int main(){
     RingBuffer rb;
     init(&rb);
@@ -329,6 +356,28 @@ int main(){
     bool ok4 = read_packet(&rb, &t2);
     std::cout << "two:  " << ok3 << " " << t1 << ", " << ok4 << " " << t2
               << " count=" << rb.count << "\n";
+
+
+    std::cout << "--- decode_all ---\n";
+    while (pop(&rb, &value)){}
+
+    unsigned char stream[] = {
+        0x01, 0x02,
+        0xAA, 0x05, 0x31, 0x35, 0x2E,  0x30, 0x33, 0xF7,
+        0xAA, 0x05, 0x31, 0x35, 0x2E, 0x30, 0x33, 0xF8,
+        0xAA, 0x04, 0x39, 0x2E, 0x35, 0x30, 0xCC
+    };
+
+    for (int i = 0; i < 25; i++) push(&rb, stream[i]);
+
+    int temps[8];
+    int found = decode_all(&rb, temps, 8);
+    assert(found == 2);
+    assert(temps[0] == 1503);
+    assert(temps[1] == 950);
+    assert(rb.count == 0);
+    std::cout << "decode_all ok\n";
+    
 
 }
 
