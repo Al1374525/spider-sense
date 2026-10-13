@@ -394,6 +394,41 @@ int main(){
     assert(rb.count == 0);
     std::cout << "chunking ok\n";
 
+
+
+    std::cout << "--- peek ---\n";{
+    while (pop(&rb, &value)){}
+
+    push(&rb, 10);
+    push(&rb, 20);
+    push(&rb, 30);
+
+    int count_before = rb.count;
+    int tail_before = rb.tail;
+
+    unsigned char v2 = 0;
+    bool ok2 = peek(&rb, 2, &v2);
+
+
+    unsigned char v3 = 0;
+    bool ok3 = peek(&rb, 3, &v3);
+
+    unsigned char vn = 0;
+    bool okn1 = peek(&rb, -1, &vn);
+
+    assert(ok2);
+    assert(v2 == 30);
+    assert(rb.count == count_before);
+    assert(rb.tail == tail_before);
+    assert(!ok3);
+    assert(!okn1);
+    std::cout << "peek ok\n";
+
+    }
+
+
+
+
     
 
 
