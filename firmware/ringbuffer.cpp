@@ -377,7 +377,25 @@ int main(){
     assert(temps[1] == 950);
     assert(rb.count == 0);
     std::cout << "decode_all ok\n";
+
+    std::cout << "--- chunking ---\n";
+    while (pop(&rb, &value)){}
+    int temps2[8];
+    int total = 0;
+
+    for (int i = 0; i < 25; i++){
+        push(&rb, stream[i]);
+        total += decode_all(&rb, &temps2[total],  8 - total);
+    }
+
+    assert(total == 2);
+    assert(temps[0] == 1503);
+    assert(temps[1] == 950);
+    assert(rb.count == 0);
+    std::cout << "chunking ok\n";
+
     
+
 
 }
 
