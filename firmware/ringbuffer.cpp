@@ -111,6 +111,79 @@ DecodeStat check_packet(RingBuffer* rb){
 
 }
 
+bool read_packet(RingBuffer* rb, int* out ){
+    unsigned char length;
+    peek(rb, 1, &length);
+
+    int sum = 0;
+    for (int i = 0; i < length; i++){
+        unsigned char b;
+        peek(rb, 2+ i, &b );
+
+        sum += b;
+    }
+
+    //2. read the checksum
+    unsigned char checksum;
+    peek(rb, 2 + length, &checksum);
+
+    //3 Mismatch: Drop ONE byte (the sync) and leave *out alone
+    unsigned char discard;
+    if ((sum & 0xFF) != checksum){
+        pop(rb, &discard);
+        return false;
+    }
+
+    // 4. Parse ASCII into hundredths "15.03" -> 1503
+    int value = 0;
+    int frac_digits = 0;
+    bool seen_dot = false;
+    bool negative = false;
+    bool valid = true;
+
+    for (int i = 0; i < length; i++){
+        unsigned char b;
+        peek(rb, 2 + i, &b);
+
+        if (b=='-' && i == 0){
+            negative = true;
+        }
+        else if(b == '.' && !seen_dot){
+            seen_dot = true;
+        }
+
+        else if(b >= '0' && b <= '9'){
+            if(!seen_dot){
+                value = value * 10 + (b - '0');
+            } else if (frac_digits < 2){
+                value = value * 10 + (b - '0');
+                frac_digits++;
+            }
+        } else{
+            valid  = false;
+        }
+    }
+
+    while (frac_digits < 2){
+        value *= 10;
+        frac_digits++;
+    }
+
+
+    // 5. Checksum passed, so the framing is trustworthy: pop the whole packet
+    for (int i = 0; i < length + 3; i++){
+        pop(rb, &discard);
+    }
+
+    if (!valid){
+        return false;
+    }
+
+    *out = negative ? -value : value;
+    return true;
+
+}
+
 int main(){
     RingBuffer rb;
     init(&rb);
@@ -227,6 +300,35 @@ int main(){
     push(&rb, 3);
     DecodeStat s4 = check_packet(&rb);
     std::cout << "Oversized: " << s4 << " count=" << rb.count << "\n";
+
+
+       std::cout << "--- read_packet ---\n";
+    while (pop(&rb, &value)) {}
+    int temp = -1;
+
+    // good packet: 15.03
+    unsigned char good[] = {0xAA, 0x05, 0x31, 0x35, 0x2E, 0x30, 0x33, 0xF7};
+    for (int i = 0; i < 8; i++) push(&rb, good[i]);
+    bool ok1 = read_packet(&rb, &temp);
+    std::cout << "good: " << ok1 << " temp=" << temp << " count=" << rb.count << "\n";
+
+    // bad checksum (F8 instead of F7)
+    temp = -1;
+    unsigned char bad[] = {0xAA, 0x05, 0x31, 0x35, 0x2E, 0x30, 0x33, 0xF8};
+    for (int i = 0; i < 8; i++) push(&rb, bad[i]);
+    bool ok2 = read_packet(&rb, &temp);
+    std::cout << "bad:  " << ok2 << " temp=" << temp << " count=" << rb.count << "\n";
+    while (pop(&rb, &value)) {}
+
+    // two packets back to back: 15.03 then 9.50
+    unsigned char second[] = {0xAA, 0x04, 0x39, 0x2E, 0x35, 0x30, 0xCC};
+    for (int i = 0; i < 8; i++) push(&rb, good[i]);
+    for (int i = 0; i < 7; i++) push(&rb, second[i]);
+    int t1 = -1, t2 = -1;
+    bool ok3 = read_packet(&rb, &t1);
+    bool ok4 = read_packet(&rb, &t2);
+    std::cout << "two:  " << ok3 << " " << t1 << ", " << ok4 << " " << t2
+              << " count=" << rb.count << "\n";
 
 }
 
