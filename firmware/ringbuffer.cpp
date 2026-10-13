@@ -5,7 +5,8 @@ const unsigned char SYNC_BYTE = 0xAA;
 enum DecodeStat{
     syncNotFound,
     incomplete,
-    ready
+    ready,
+    badLength
 
 };
 
@@ -96,6 +97,11 @@ DecodeStat check_packet(RingBuffer* rb){
     }
 
     int packet_size = length + 3;
+
+    if (packet_size > CAPACITY){
+        pop(rb, &length);
+        return badLength;
+    }
 
     if(rb->count < packet_size){
         return incomplete;
@@ -212,6 +218,15 @@ int main(){
     push(&rb, 3);
     DecodeStat s3 = check_packet(&rb);
     std::cout << "garbage: " << s3 << " count=" << rb.count << "\n";
+
+    while (pop(&rb, &value)) {}
+    push(&rb, 0xAA);
+    push(&rb, 200);
+    push(&rb, 1);
+    push(&rb, 2);
+    push(&rb, 3);
+    DecodeStat s4 = check_packet(&rb);
+    std::cout << "Oversized: " << s4 << " count=" << rb.count << "\n";
 
 }
 
