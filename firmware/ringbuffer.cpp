@@ -389,8 +389,8 @@ int main(){
     }
 
     assert(total == 2);
-    assert(temps[0] == 1503);
-    assert(temps[1] == 950);
+    assert(temps2[0] == 1503);
+    assert(temps2[1] == 950);
     assert(rb.count == 0);
     std::cout << "chunking ok\n";
 
@@ -426,12 +426,61 @@ int main(){
 
     }
 
+    std::cout << "-- cross-check --\n";
+    {
+        while (pop(&rb, &value)){}
+
+        unsigned char vectors[]  {
+            0xAA, 0x05, 0x31, 0x35, 0x2E, 0x30, 0x33, 0xF7,
+            0xAA, 0x04, 0x39, 0x2E, 0x35, 0x30, 0xCC,
+            0xAA, 0x04, 0x30, 0x2E, 0x30, 0x30, 0xBE,
+            0xAA, 0x05, 0x2D, 0x35, 0x2E, 0x30, 0x30, 0xF0,
+            0xAA, 0x06, 0x31, 0x30, 0x30, 0x2E, 0x30, 0x30, 0x1F,
+            0xAA, 0x06, 0x2D, 0x31, 0x32, 0x2E, 0x33, 0x34, 0x25
+        };
+
+        int expected[] = {1503, 950, 0, -500, 10000, -1234};
+        int n = (int)sizeof(vectors);
+
+        //Part 1: whole stream at once
+        for (int i = 0; i < n; i++){
+            push(&rb, vectors[i]);
+        }
+
+        int got[8];
+        int found_all = decode_all(&rb, got, 8);
+
+        assert(found_all == 6);
+        for (int i = 0; i < 6; i++){
+            assert(got[i] == expected[i]);
+        }
+
+        assert(rb.count== 0);
+
+        //Part 2: same stream, one byte at a time
+        int got2[8];
+        int total2 = 0;
+        for(int i = 0; i < n; i++){
+            push(&rb, vectors[i]);
+            total2 += decode_all(&rb, &got2[total2], 8 - total2);
+    }
+
+    assert(total2 ==6);
+    for (int i = 0; i < 6; i++){
+        assert(got2[i] == expected[i]);
+    }
+
+    assert(rb.count == 0);
+
+    std::cout << "cross-check ok \n";
+
 
 
 
     
 
 
+}
 }
 
 
